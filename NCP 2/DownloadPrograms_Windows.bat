@@ -191,7 +191,7 @@ echo ?? Устанавливаем Yandex.Telemost...
 echo.
 
 :: Прямая ссылка на установщик Telemost (актуальная)
-set "TELEMOST_URL=https://disk.yandex.ru/d/52s-F5EbtJ3KKA"
+set "TELEMOST_URL=https://github.com/huksleva/practice-2/raw/refs/heads/main/%D0%98%D0%A1%D0%A0%202/TelemostSetup.exe"
 set "TELEMOST_EXE=%TEMP_DIR%\TelemostSetup.exe"
 
 echo Скачивание Yandex.Telemost...
