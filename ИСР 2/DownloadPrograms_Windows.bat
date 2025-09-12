@@ -14,11 +14,11 @@ echo.
 :: Проверка прав администратора
 net session >nul 2>&1
 if %errorLevel% NEQ 0 (
-    echo Ошибка: Этот скрипт должен быть запущен от имени администратора.
+    echo.
+    echo ? Ошибка: Требуются права администратора.
     pause
     exit /b
 )
-
 echo Проверка наличия winget...
 
 :: Проверяем, доступен ли winget
@@ -34,11 +34,12 @@ if %errorLevel% EQU 0 (
 echo.
 echo Обновляем список пакетов...
 winget upgrade
+winget source update
 
 :: Список программ для установки (через их PackageIdentifier)
 :: Можно добавить свои из https://winget.run
 
-set "programs=MaximaTeam.Maxima Microsoft.VisualStudioCode Docker.DockerDesktop JetBrains.PyCharm.Community Git.Git GitHub.GitHubDesktop KNIMEAG.KNIMEAnalyticsPlatform GIMP.GIMP JuliaLang.Julia Python.Python.3 Rustlang.Rustup MSYS2.MSYS2 Zettlr.Zettlr MiKTeX.MiKTeX Chocolatey.Chocolatey TeXstudio.TeXstudio Anaconda.Anaconda3 FarManager.FarManager SumatraPDF.SumatraPDF Google.Chrome Flameshot.Flameshot Canonical.Ubuntu.2204 Qalculate.Qalculate Quadren.Arc.Prerelease 7zip.7zip Mozilla.Firefox Yandex.Browser Microsoft.Edge"
+::set "programs=MaximaTeam.Maxima Microsoft.VisualStudioCode Docker.DockerDesktop JetBrains.PyCharm.Community Git.Git GitHub.GitHubDesktop KNIMEAG.KNIMEAnalyticsPlatform GIMP.GIMP JuliaLang.Julia Python.Python.3 Rustlang.Rustup MSYS2.MSYS2 Zettlr.Zettlr MiKTeX.MiKTeX Chocolatey.Chocolatey TeXstudio.TeXstudio Anaconda.Anaconda3 FarManager.FarManager SumatraPDF.SumatraPDF Google.Chrome Flameshot.Flameshot Canonical.Ubuntu.2204 Qalculate.Qalculate Quadren.Arc.Prerelease 7zip.7zip Mozilla.Firefox Yandex.Browser Microsoft.Edge"
 
 echo.
 echo Начинаем установку приложений:
@@ -62,9 +63,7 @@ for %%p in (%programs%) do (
 
 
 
-
-
-echo ?? Начинаем установку Sber Jazz и Yandex.Telemost...
+echo Начинаем установку Sber Jazz и Yandex.Telemost...
 echo.
 
 :: Временная папка
@@ -81,7 +80,7 @@ echo ?? Устанавливаем Sber Jazz...
 echo.
 
 :: Прямая ссылка на установщик Sber Jazz (проверена на 2025)
-set "JAZZ_URL=https://downloads.sber.ru/jazz/SberJazzSetup.exe"
+set "JAZZ_URL=https://dl.salutejazz.ru/desktop/latest/jazz.exe"
 set "JAZZ_EXE=%TEMP_DIR%\SberJazzSetup.exe"
 
 echo Скачивание Sber Jazz...
@@ -98,6 +97,91 @@ if %errorlevel% EQU 0 (
     echo ?? Установка Sber Jazz завершилась с ошибкой или пропущена.
 )
 
+
+
+
+::============================================
+:: УСТАНОВКА: Yandex.Telemost
+::============================================
+
+set "TEMP_DIR=%TEMP%\telemost_install"
+set "HTML_FILE=%TEMP_DIR%\page.html"
+set "SETUP_EXE=%TEMP_DIR%\TelemostSetup.exe"
+
+if exist "%TEMP_DIR%" rd /s /q "%TEMP_DIR%"
+mkdir "%TEMP_DIR%"
+
+cd /d "%TEMP_DIR%"
+
+:: Шаг 1: Скачиваем страницу
+echo Получаем страницу загрузки...
+powershell -Command "Invoke-WebRequest -Uri 'https://telemost.yandex.ru/download-desktop' -UseBasicParsing -OutFile '%HTML_FILE%'" >nul 2>&1
+if %errorlevel% NEQ 0 (
+    echo Не удалось загрузить страницу.
+    echo Проверьте интернет или попробуйте позже.
+    pause
+    exit /b
+)
+
+:: Шаг 2: Ищем ссылку на .exe в HTML
+set "url_found="
+for /f "tokens=*" %%a in ('findstr /i "TelemostSetup.*\.exe" "%HTML_FILE%"') do (
+    for /f "tokens=2 delims=\" %%b in ('echo %%a ^| findstr -o "https://[a-zA-Z0-9./\-]*TelemostSetup[a-zA-Z0-9\-]*\.exe"') do (
+        set "url_found=%%b"
+    )
+)
+
+if not defined url_found (
+    echo Не удалось найти ссылку на установщик.
+    echo Возможно, структура сайта изменилась.
+    echo Перейдите вручную: https://telemost.yandex.ru/download-desktop
+    pause
+    exit /b
+)
+
+echo Найдена ссылка: !url_found!
+echo.
+
+:: Шаг 3: Скачивание установщика
+echo Скачивание установщика...
+powershell -Command "Invoke-WebRequest -Uri '!url_found!' -OutFile '%SETUP_EXE%'" || (
+    echo Ошибка при скачивании файла.
+    pause
+    exit /b
+)
+
+:: Шаг 4: Установка
+echo ?? Запуск установки...
+start /wait "" "%SETUP_EXE%" /verysilent /allusers
+if %errorlevel% EQU 0 (
+    echo Yandex.Telemost успешно установлен.
+) else (
+    echo Ошибка установки. Код: %errorlevel%
+)
+
+:: Шаг 5: Очистка
+echo Очистка...
+rd /s /q "%TEMP_DIR%" >nul 2>&1
+
+echo.
+echo Готово! Телемост доступен в меню «Пуск».
+pause
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ::============================================
 :: УСТАНОВКА: Yandex.Telemost
 ::============================================
@@ -107,7 +191,7 @@ echo ?? Устанавливаем Yandex.Telemost...
 echo.
 
 :: Прямая ссылка на установщик Telemost (актуальная)
-set "TELEMOST_URL=https://telemost.yandex.ru/download/"
+set "TELEMOST_URL=https://disk.yandex.ru/d/52s-F5EbtJ3KKA"
 set "TELEMOST_EXE=%TEMP_DIR%\TelemostSetup.exe"
 
 echo Скачивание Yandex.Telemost...
