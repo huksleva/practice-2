@@ -39,7 +39,7 @@ winget source update
 :: Список программ для установки (через их PackageIdentifier)
 :: Можно добавить свои из https://winget.run
 
-::set "programs=MaximaTeam.Maxima Microsoft.VisualStudioCode Docker.DockerDesktop JetBrains.PyCharm.Community Git.Git GitHub.GitHubDesktop KNIMEAG.KNIMEAnalyticsPlatform GIMP.GIMP JuliaLang.Julia Python.Python.3 Rustlang.Rustup MSYS2.MSYS2 Zettlr.Zettlr MiKTeX.MiKTeX Chocolatey.Chocolatey TeXstudio.TeXstudio Anaconda.Anaconda3 FarManager.FarManager SumatraPDF.SumatraPDF Google.Chrome Flameshot.Flameshot Canonical.Ubuntu.2204 Qalculate.Qalculate Quadren.Arc.Prerelease 7zip.7zip Mozilla.Firefox Yandex.Browser Microsoft.Edge"
+set "programs=MaximaTeam.Maxima Microsoft.VisualStudioCode Docker.DockerDesktop JetBrains.PyCharm.Community Git.Git GitHub.GitHubDesktop KNIMEAG.KNIMEAnalyticsPlatform GIMP.GIMP JuliaLang.Julia Python.Python.3 Rustlang.Rustup MSYS2.MSYS2 Zettlr.Zettlr MiKTeX.MiKTeX Chocolatey.Chocolatey TeXstudio.TeXstudio Anaconda.Anaconda3 FarManager.FarManager SumatraPDF.SumatraPDF Google.Chrome Flameshot.Flameshot Canonical.Ubuntu.2204 Qalculate.Qalculate Quadren.Arc.Prerelease 7zip.7zip Mozilla.Firefox Yandex.Browser Microsoft.Edge"
 
 echo.
 echo Начинаем установку приложений:
@@ -60,6 +60,32 @@ for %%p in (%programs%) do (
 
 
 
+::============================================
+:: УСТАНОВКА РАСШИРЕНИЙ ДЛЯ VISUAL STUDIO CODE
+::============================================
+echo.
+echo Устанавливаем расширения для Visual Studio Code...
+echo.
+
+set "VSCODE_BIN=%LOCALAPPDATA%\Programs\Microsoft VS Code\bin"
+set "PATH=%PATH%;%VSCODE_BIN%"
+
+where code >nul 2>&1
+if %errorLevel% NEQ 0 (
+    echo ?? Ошибка: Команда 'code' не найдена.
+    goto JazzInstall
+)
+
+set "EXTENSIONS=ms-python.python ms-python.debugpy ms-python.vscode-python-envs ms-vscode.cpptools ms-vscode.cpptools-extension-pack ms-vscode.cpptools-themes ms-azuretools.vscode-docker sidthesloth.html5-boilerplate ecmel.vscode-html-css george-alisson.html-preview-vscode skyran.js-jsx-snippets donjayamanne.git-extension-pack"
+
+for %%e in (%EXTENSIONS%) do (
+    echo Устанавливаем расширение: %%e
+    call code --install-extension "%%e" --force
+    echo.
+)
+
+
+
 
 
 
@@ -73,9 +99,11 @@ mkdir "%TEMP_DIR%"
 
 cd /d "%TEMP_DIR%"
 
+
 ::============================================
 :: УСТАНОВКА: Sber Jazz
 ::============================================
+:JazzInstall
 echo ?? Устанавливаем Sber Jazz...
 echo.
 
@@ -100,85 +128,6 @@ if %errorlevel% EQU 0 (
 
 
 
-::============================================
-:: УСТАНОВКА: Yandex.Telemost
-::============================================
-
-set "TEMP_DIR=%TEMP%\telemost_install"
-set "HTML_FILE=%TEMP_DIR%\page.html"
-set "SETUP_EXE=%TEMP_DIR%\TelemostSetup.exe"
-
-if exist "%TEMP_DIR%" rd /s /q "%TEMP_DIR%"
-mkdir "%TEMP_DIR%"
-
-cd /d "%TEMP_DIR%"
-
-:: Шаг 1: Скачиваем страницу
-echo Получаем страницу загрузки...
-powershell -Command "Invoke-WebRequest -Uri 'https://telemost.yandex.ru/download-desktop' -UseBasicParsing -OutFile '%HTML_FILE%'" >nul 2>&1
-if %errorlevel% NEQ 0 (
-    echo Не удалось загрузить страницу.
-    echo Проверьте интернет или попробуйте позже.
-    pause
-    exit /b
-)
-
-:: Шаг 2: Ищем ссылку на .exe в HTML
-set "url_found="
-for /f "tokens=*" %%a in ('findstr /i "TelemostSetup.*\.exe" "%HTML_FILE%"') do (
-    for /f "tokens=2 delims=\" %%b in ('echo %%a ^| findstr -o "https://[a-zA-Z0-9./\-]*TelemostSetup[a-zA-Z0-9\-]*\.exe"') do (
-        set "url_found=%%b"
-    )
-)
-
-if not defined url_found (
-    echo Не удалось найти ссылку на установщик.
-    echo Возможно, структура сайта изменилась.
-    echo Перейдите вручную: https://telemost.yandex.ru/download-desktop
-    pause
-    exit /b
-)
-
-echo Найдена ссылка: !url_found!
-echo.
-
-:: Шаг 3: Скачивание установщика
-echo Скачивание установщика...
-powershell -Command "Invoke-WebRequest -Uri '!url_found!' -OutFile '%SETUP_EXE%'" || (
-    echo Ошибка при скачивании файла.
-    pause
-    exit /b
-)
-
-:: Шаг 4: Установка
-echo ?? Запуск установки...
-start /wait "" "%SETUP_EXE%" /verysilent /allusers
-if %errorlevel% EQU 0 (
-    echo Yandex.Telemost успешно установлен.
-) else (
-    echo Ошибка установки. Код: %errorlevel%
-)
-
-:: Шаг 5: Очистка
-echo Очистка...
-rd /s /q "%TEMP_DIR%" >nul 2>&1
-
-echo.
-echo Готово! Телемост доступен в меню «Пуск».
-pause
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -190,41 +139,30 @@ echo.
 echo ?? Устанавливаем Yandex.Telemost...
 echo.
 
-:: Прямая ссылка на установщик Telemost (актуальная)
-set "TELEMOST_URL=https://github.com/huksleva/practice-2/raw/refs/heads/main/%D0%98%D0%A1%D0%A0%202/TelemostSetup.exe"
+set "TELEMOST_URL=https://github.com/huksleva/practice-2/raw/refs/heads/main/NCP_2/TelemostSetup.exe"
 set "TELEMOST_EXE=%TEMP_DIR%\TelemostSetup.exe"
 
+:: Удаляем лишние пробелы в URL
+set "TELEMOST_URL=%TELEMOST_URL: =%"
+
 echo Скачивание Yandex.Telemost...
-:: Используем PowerShell для получения редиректа (Telemost требует редирект)
-for /f "tokens=3" %%a in ('powershell -Command "$r = Invoke-WebRequest '%TELEMOST_URL%' -MaximumRedirection 0 -ErrorAction SilentlyContinue; $r.Headers.Location"') do set "DIRECT_URL=%%a"
-
-if not defined DIRECT_URL (
-    echo ?? Не удалось получить ссылку на установщик Telemost.
-    echo    Возможно, изменился URL. Перейдите вручную: https://telemost.yandex.ru
-    goto Cleanup
-)
-
-echo Загружаем установщик с: !DIRECT_URL!
-powershell -Command "Invoke-WebRequest -Uri '!DIRECT_URL!' -OutFile '%TELEMOST_EXE%'" || (
-    echo ?? Ошибка при скачивании Telemost.
+powershell -Command "Invoke-WebRequest -Uri '%TELEMOST_URL%' -OutFile '%TELEMOST_EXE%'" || (
+    echo ?? Ошибка при скачивании Yandex.Telemost.
+    echo    Проверьте интернет или URL файла.
     goto Cleanup
 )
 
 echo Запуск установки Yandex.Telemost...
+
+:: Запуск установки
 start /wait "" "%TELEMOST_EXE%" /verysilent /allusers
+
+
 if %errorlevel% EQU 0 (
     echo ? Yandex.Telemost успешно установлен.
 ) else (
     echo ?? Установка Yandex.Telemost завершилась с ошибкой.
 )
-
-::============================================
-:: Очистка временных файлов
-::============================================
-:Cleanup
-echo.
-echo ?? Очистка временных файлов...
-if exist "%TEMP_DIR%" rd /s /q "%TEMP_DIR%" >nul 2>&1
 
 echo.
 echo Установка завершена!
