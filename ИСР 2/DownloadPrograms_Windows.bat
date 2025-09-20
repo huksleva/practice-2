@@ -31,6 +31,12 @@ if %errorLevel% EQU 0 (
     if %errorLevel% NEQ 0 goto ErrorExit
 )
 
+
+
+
+goto TelemostInstall
+
+
 echo.
 echo Обновляем список пакетов...
 winget upgrade
@@ -41,7 +47,6 @@ winget source update
 
 
 
-goto TelemostInstall
 
 
 
@@ -147,7 +152,7 @@ echo.
 echo ?? Устанавливаем Yandex.Telemost...
 echo.
 
-set "TELEMOST_URL=https://github.com/huksleva/practice-2/raw/refs/heads/main/NCP_2/TelemostSetup.exe"
+set "TELEMOST_URL=https://github.com/huksleva/practice-2/raw/refs/heads/main/%D0%98%D0%A1%D0%A0%202/TelemostSetup.exe"
 set "TELEMOST_EXE=%TEMP_DIR%\TelemostSetup.exe"
 
 :: Удаляем лишние пробелы в URL
