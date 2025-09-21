@@ -30,28 +30,17 @@ if %errorLevel% EQU 0 (
     call :InstallWinget
     if %errorLevel% NEQ 0 goto ErrorExit
 )
-
-
-
-
-goto TelemostInstall
-
-
 echo.
 echo Обновляем список пакетов...
 winget upgrade
 winget source update
 
+
+
+
+
 :: Список программ для установки (через их PackageIdentifier)
 :: Можно добавить свои из https://winget.run
-
-
-
-
-
-
-
-
 set "programs=MaximaTeam.Maxima Microsoft.VisualStudioCode Docker.DockerDesktop JetBrains.PyCharm.Community Git.Git GitHub.GitHubDesktop KNIMEAG.KNIMEAnalyticsPlatform GIMP.GIMP JuliaLang.Julia Python.Python.3 Rustlang.Rustup MSYS2.MSYS2 Zettlr.Zettlr MiKTeX.MiKTeX Chocolatey.Chocolatey TeXstudio.TeXstudio Anaconda.Anaconda3 FarManager.FarManager SumatraPDF.SumatraPDF Google.Chrome Flameshot.Flameshot Canonical.Ubuntu.2204 Qalculate.Qalculate Quadren.Arc.Prerelease 7zip.7zip Mozilla.Firefox Yandex.Browser Microsoft.Edge"
 
 echo.
@@ -152,7 +141,7 @@ echo.
 echo ?? Устанавливаем Yandex.Telemost...
 echo.
 
-set "TELEMOST_URL=https://github.com/huksleva/practice-2/raw/refs/heads/main/%D0%98%D0%A1%D0%A0%202/TelemostSetup.exe"
+set "TELEMOST_URL=https://github.com/huksleva/practice-2/raw/refs/heads/main/ИСР%%202/TelemostSetup.exe"
 set "TELEMOST_EXE=%TEMP_DIR%\TelemostSetup.exe"
 
 :: Удаляем лишние пробелы в URL
